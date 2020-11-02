@@ -76,6 +76,8 @@ def newAnalyzer():
 # Funciones para agregar informacion al grafo
 
 def addStopConnection(analyzer, lastservice, service):
+    #Estructura - última línea archivo - Línea actual archivo
+    #Crea connecció cuando hay mismo servicio y dirección 
     """
     Adiciona las estaciones al grafo como vertices y arcos entre las
     estaciones adyacentes.
@@ -92,9 +94,12 @@ def addStopConnection(analyzer, lastservice, service):
         destination = formatVertex(service)
         cleanServiceDistance(lastservice, service)
         distance = float(service['Distance']) - float(lastservice['Distance'])
+        #Crear parada para servicio actual y anterior
         addStop(analyzer, origin)
         addStop(analyzer, destination)
+        #Crea relación entre ambos servicios (arco)
         addConnection(analyzer, origin, destination, distance)
+        #Agrega un ruta en estación (mapa)
         addRouteStop(analyzer, service)
         addRouteStop(analyzer, lastservice)
         return analyzer
@@ -138,16 +143,17 @@ def addRouteConnections(analyzer):
     arcos entre ellas para representar el cambio de ruta
     que se puede realizar en una estación.
     """
-    lststops = m.keySet(analyzer['stops'])
+    lststops = m.keySet(analyzer['stops']) #Single linked
     stopsiterator = it.newIterator(lststops)
     while it.hasNext(stopsiterator):
         key = it.next(stopsiterator)
-        lstroutes = m.get(analyzer['stops'], key)['value']
+        lstroutes = m.get(analyzer['stops'], key)['value'] #Devuelve en Single linked
         prevrout = None
         routeiterator = it.newIterator(lstroutes)
         while it.hasNext(routeiterator):
             route = key + '-' + it.next(routeiterator)
             if prevrout is not None:
+                #Relación por arco
                 addConnection(analyzer, prevrout, route, 0)
                 addConnection(analyzer, route, prevrout, 0)
             prevrout = route
@@ -172,7 +178,9 @@ def connectedComponents(analyzer):
     Calcula los componentes conectados del grafo
     Se utiliza el algoritmo de Kosaraju
     """
+    print(" Iniciando")
     analyzer['components'] = scc.KosarajuSCC(analyzer['connections'])
+    print(" Terminado")
     return scc.connectedComponents(analyzer['components'])
 
 
